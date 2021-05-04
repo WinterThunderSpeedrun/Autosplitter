@@ -110,10 +110,10 @@ reset
         vars.LevelSkipActivated = false;
     } else if (singleLevelModeRestart || singleLevelModeChangedLevel) {
         if ((vars.levelChanged ||
-	        (current.Level == 1 && vars.adjustedFramesLeft <= vars.levelRestartTimestamp - vars.levelRestartSafetyBuffer) ||
-	        (current.Level != 1 && vars.adjustedFramesLeft <= vars.levelRestartTimestamp) ||
-	        (vars.adjustedFramesLeft > vars.levelRestartTimestamp)) && 
-	        !(current.Level == 3 && current.Level3CP == 1)) {
+	    (current.Level == 1 && vars.adjustedFramesLeft <= vars.levelRestartTimestamp - vars.levelRestartSafetyBuffer) ||
+	    (current.Level != 1 && vars.adjustedFramesLeft <= vars.levelRestartTimestamp) ||
+	    (vars.adjustedFramesLeft > vars.levelRestartTimestamp)) && 
+	    !(current.Level == 3 && current.Level3CP == 1)) {
                 vars.levelRestartTimestamp = vars.adjustedFramesLeft;
                 vars.levelRestarted = true;
                 vars.levelChanged = false;
