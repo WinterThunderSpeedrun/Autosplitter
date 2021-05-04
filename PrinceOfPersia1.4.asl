@@ -132,9 +132,12 @@ gameTime
     vars.totalFramesLeft = (vars.minutesLeft * 720) + current.FrameSeconds;
     vars.adjustedFramesLeft = (vars.minutesLeft < 0) ? 0 : vars.totalFramesLeft; //time has expired
     
-    if((old.MinutesLeft != 15 && current.MinutesLeft == 15) && (old.FrameSeconds != 718 && old.FrameSeconds != 719 && current.FrameSeconds == 718)){
+    if((old.MinutesLeft != 15 && current.MinutesLeft == 15) && 
+       (old.FrameSeconds != 718 && old.FrameSeconds != 719 && current.FrameSeconds == 718) &&
+       !settings["single_level_mode"]){
         vars.LevelSkipActivated = true;
     }
+    
     int BaseFramesRemaining = settings["single_level_mode"] ? vars.levelRestartTimestamp : ((vars.LevelSkipActivated ? (15) : (60)) * 720);
     int elapsedFrames = BaseFramesRemaining - vars.adjustedFramesLeft;    
     double secondsElapsed = elapsedFrames / 12.0;
