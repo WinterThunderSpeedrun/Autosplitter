@@ -157,7 +157,7 @@ split
     bool doSplit = ((old.Level != current.Level) && !skipSplit) ||       // if level changes
                    (current.Level == 14 && current.EndGame == 255);      // if currently on level 14 and EndGame changes to 255
 
-    if (doSplit && settings["single_level_mode"] == true) {
+    if (doSplit && settings["single_level_mode"]) {
         vars.levelChanged = true;
     }
     
