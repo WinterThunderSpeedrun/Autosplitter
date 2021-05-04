@@ -31,6 +31,7 @@ state("DOSBOX")
     byte MinutesLeft    : "DOSBox.exe", 0x193C370, 0x1E350;          // Minutes
     int  Count          : "DOSBox.exe", 0x193C370, 0x1E354;          // Frames
     short FrameSeconds  : "DOSBox.exe", 0x193C370, 0x1E356;          // Frames in second part of time (720-0)
+    byte Sound          : "DOSBox.exe", 0x193C370, 0x2F233;          // 0 if sound is on, 1 if sound is off
     byte Room           : "DOSBox.exe", 0x193C370, 0x1D107;          // shows current room ID
     byte IsRestartLevel : "DOSBox.exe", 0x193C370, 0x1E16A;          // the is_restart_level (Ctrl+A) flag 
     byte LevelTextTime  : "DOSBox.exe", 0x193C370, 0x1F35E;          // frames left for showing the "Level N" text
@@ -45,6 +46,9 @@ startup
 {
     refreshRate = 30; // Prince of Persia runs at 12 fps, let's update 2.5x as often to be sure
     
+    settings.Add("sound_settings", true, "Checking sound");
+        settings.Add("sound", false, "Sound On At Start?", "sound_settings");
+	
     settings.Add("split_settings", true, "Split configuration");
         settings.Add("disable_levelskip_detection", false, "Disable 'Level Skip' category detection (keep splits for levels 1-3)", "split_settings");
         settings.Add("merge_level_12", false, "Don't split between levels 12 and 13 (treat tower Level and Jaffar level as one segment)", "split_settings");
@@ -68,7 +72,8 @@ startup
 start
 {
     // start if start variable = 1 AND if level = 1 AND if Minutes = 60 AND count is = 47120384
-    bool startGame = (current.Start == 0x1) && 
+    bool startGame = ((current.Sound == 0 && settings["sound"] == true) || (settings["sound"] == false)) &&
+                     (current.Start == 0x1) && 
                      (current.Level == 0x1) && 
                      (current.MinutesLeft == 0x3C) && 
                      (current.Count >= 0x2CE0000);
