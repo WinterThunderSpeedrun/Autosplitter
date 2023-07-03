@@ -54,6 +54,8 @@ startup
         settings.Add("merge_level_12", false, "Don't split between levels 12 and 13 (treat tower Level and Jaffar level as one segment)", "split_settings");
     
     settings.Add("single_level_mode", false, "Individual level mode");
+
+    settings.Add("use_scene_split", false, "Split on the next level load, rather than during door entry");
     
      vars.isLevelSkipMode = (Func<bool>) (() => {
         string categoryName = timer.Run.GetExtendedCategoryName().ToLower();
@@ -167,8 +169,10 @@ split
     
     bool skipSplit = (suppressFirstLevels || suppressJaffarLevel);
     
-    bool doSplit = ((old.Level != current.Level) && !skipSplit) ||       // if level changes
-                   (current.Level == 14 && current.EndGame == 0xFF);     // if currently on level 14 and EndGame changes to 255 (FF in hexadecimal)
+    bool doSplit = ((old.Level != current.Level) && !settings["use_scene_split"]) ||      // if level changes
+                   ((old.Scene != current.Scene) && settings["use_scene_split"]) &&       // if scene changes
+                   !skipSplit ||
+                   (current.Level == 14 && current.EndGame == 0xFF);                      // if currently on level 14 and EndGame changes to 255 (FF in hexadecimal)
 
     if (doSplit && settings["single_level_mode"]) {
         vars.levelChanged = true;
