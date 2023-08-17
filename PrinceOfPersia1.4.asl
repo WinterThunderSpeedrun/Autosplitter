@@ -54,10 +54,8 @@ startup
         settings.Add("merge_level_12", false, "Don't split between levels 12 and 13 (treat tower Level and Jaffar level as one segment)", "split_settings");
     
     settings.Add("single_level_mode", false, "Individual level mode");
-
-    settings.Add("il_timer_layout", false, "Calculate IL time during full runs (Adds 2 more rows in the layout)");
     
-     vars.isLevelSkipMode = (Func<bool>) (() => {
+    vars.isLevelSkipMode = (Func<bool>) (() => {
         string categoryName = timer.Run.GetExtendedCategoryName().ToLower();
         //print("POPASL.isLevelSkipEnabled(): categoryName = " + categoryName);
         bool isLevelSkip = categoryName.Contains("level skip") || categoryName.Contains("levelskip");
@@ -66,43 +64,9 @@ startup
     
     vars.levelRestartSafetyBuffer = 30;  // resets are suppressed for 2.5s after CTRL+A
     vars.levelRestartTimestamp = 60*720;
-    vars.levelRestartILTimestamp = 60*720;
     vars.levelChanged = false;
     vars.levelRestarted = false;
     vars.levelSkipActivated = false;
-    vars.previousILTime = TimeSpan.FromSeconds(0);
-    vars.currentILTime = TimeSpan.FromSeconds(0);
-    vars.CompletedIL = 0;
-    
-    vars.SetTextComponent = (Action<string, string>)((id, text) => {
-        var textSettings = timer.Layout.Components.Where(x => x.GetType().Name == "TextComponent").Select(x => x.GetType().GetProperty("Settings").GetValue(x, null));
-        var textSetting = textSettings.FirstOrDefault(x => (x.GetType().GetProperty("Text1").GetValue(x, null) as string) == id);
-        if (textSetting == null)
-        {
-        var textComponentAssembly = Assembly.LoadFrom("Components\\LiveSplit.Text.dll");
-        var textComponent = Activator.CreateInstance(textComponentAssembly.GetType("LiveSplit.UI.Components.TextComponent"), timer);
-        timer.Layout.LayoutComponents.Add(new LiveSplit.UI.Components.LayoutComponent("LiveSplit.Text.dll", textComponent as LiveSplit.UI.Components.IComponent));
-
-        textSetting = textComponent.GetType().GetProperty("Settings", BindingFlags.Instance | BindingFlags.Public).GetValue(textComponent, null);
-        textSetting.GetType().GetProperty("Text1").SetValue(textSetting, id);
-        }
-
-        if (textSetting != null)
-        textSetting.GetType().GetProperty("Text2").SetValue(textSetting, text);
-    });
-
-    vars.RemoveTextComponent = (Action<string>)((id) => {
-        int indexToRemove = -1;
-        foreach (dynamic component in timer.Layout.Components) {
-            if (component.GetType().Name == "TextComponent" && System.Text.RegularExpressions.Regex.IsMatch(component.Settings.Text1, id)) {
-                indexToRemove = timer.Layout.Components.ToList().IndexOf(component);
-                break;
-            }
-        }
-        if (indexToRemove != -1) {
-            timer.Layout.LayoutComponents.RemoveAt(indexToRemove);
-        }
-    });
 }
 
 start
@@ -118,7 +82,6 @@ start
     
     if (startGame) {
         vars.levelRestartTimestamp = 60*720;
-        vars.levelRestartILTimestamp = 60*720;
         vars.levelRestarted = false;
         vars.levelChanged = false;
         vars.levelSkipActivated = false;
@@ -145,7 +108,7 @@ reset
     
     bool singleLevelModeRestart = (settings["single_level_mode"] && levelRestartInProgress && levelTimeJustAppeared);
     bool singleLevelModeChangedLevel = (settings["single_level_mode"] && vars.levelChanged);
-
+    
     if (notPlaying) {
         vars.levelRestartTimestamp = 60*720;
         vars.levelRestarted = false;
@@ -165,18 +128,7 @@ reset
         }
     }
     
-    if (((old.Scene != current.Scene) || (levelRestartInProgress && levelTimeJustAppeared)) &&
-        !(current.Level == 3 && current.Level3CP == 1) && current.Level != 1) {
-        vars.levelRestartILTimestamp = vars.adjustedFramesLeft;
-    }
-    
     return (notPlaying || singleLevelModeRestart);
-}
-
-onReset
-{
-    vars.RemoveTextComponent("Previous IL");
-    vars.RemoveTextComponent("Current IL Time");
 }
 
 gameTime
@@ -204,33 +156,12 @@ gameTime
         secondsElapsed -= 0.002;   // hack for splits.io issue - if last split is empty, gametime won't be available
     }
 
-    if (current.Level == 1) {
-        vars.currentILTime = TimeSpan.FromSeconds(secondsElapsed);
-    }
-    else {
-        vars.currentILTime = TimeSpan.FromSeconds((vars.levelRestartILTimestamp - vars.adjustedFramesLeft)/12.0);
-    }
-    
     //print("POPASL[gameTime]: secondsElapsed = " + secondsElapsed);
     return TimeSpan.FromSeconds(secondsElapsed);
 }
 
 split
 {
-    if (!settings["single_level_mode"] && settings["il_timer_layout"]) {
-        if (vars.CompletedIL > 0) {
-            string previousILTimeString = "Level " + vars.CompletedIL.ToString() + " in " + vars.previousILTime.ToString("mm\\:ss\\.fff");
-            vars.SetTextComponent("Previous IL", previousILTimeString);
-        } else {
-            vars.SetTextComponent("Previous IL", "-");
-        }
-
-        if (current.Level <= 14) {
-            string currentILTimeString = vars.currentILTime.ToString("mm\\:ss\\.fff");
-            vars.SetTextComponent("Current IL Time", currentILTimeString);
-        }
-    }
-    
     bool suppressFirstLevels = (!settings["disable_levelskip_detection"] && vars.isLevelSkipMode() && old.Level <= 3) ;
     bool suppressJaffarLevel = (settings["merge_level_12"] && old.Level == 12);
     
@@ -242,12 +173,7 @@ split
     if (doSplit && settings["single_level_mode"]) {
         vars.levelChanged = true;
     }
-    
-    if (doSplit) {
-        vars.previousILTime = vars.currentILTime;
-        vars.CompletedIL = old.Level;
-    }
-    
+
     return doSplit;
 }
 
