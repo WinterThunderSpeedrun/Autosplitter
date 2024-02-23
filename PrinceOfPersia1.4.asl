@@ -1,3 +1,9 @@
+// .- Warning ---------------------------------------------------.
+// |                                                             |
+// |    MOVED to https://github.com/PoPRuns/PoP.AutoSplitters    |
+// |                                                             |
+// '-------------------------------------------------------------'
+//
 // Game:           Prince of Persia v1.4
 // Emulator:       DOSBox 0.74-3
 // Original by:    ThePedMeister
